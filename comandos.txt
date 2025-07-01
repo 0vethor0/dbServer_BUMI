@@ -1,0 +1,7 @@
+para iniciar un nuevo proyecto en laravel
+
+laravel new (nombre del proyecto)
+
+para correr el servidor:
+
+php artisan serve
