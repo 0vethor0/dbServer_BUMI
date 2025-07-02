@@ -18,6 +18,7 @@ class tbestudiante extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'cedulaEstudiante',
         '1er_nombre',
         '2do_nombre',
         '1er_ape',

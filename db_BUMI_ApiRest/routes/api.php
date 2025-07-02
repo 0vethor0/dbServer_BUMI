@@ -9,10 +9,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::get('/estudiantes', [TbestudianteController::class, 'index']);
-Route::get('/estudiantes/{id}', [TbestudianteController::class, 'show']);
-Route::post('/estudiantes', [TbestudianteController::class, 'store']);
-Route::patch('/estudiantes/{id}', [TbestudianteController::class, 'update']);
-Route::delete('/estudiantes/{id}', [TbestudianteController::class, 'destroy']);
-
-
+Route::get('/consultar_todos_los_estudiantes', [TbestudianteController::class, 'index']);
+Route::get('/consultar_estudiante/{id}', [TbestudianteController::class, 'show']);
+Route::post('/crear_estudiante', [TbestudianteController::class, 'store']);
+Route::patch('/actualizar_estudiante/{id}', [TbestudianteController::class, 'update']);
+Route::delete('/eliminar_estudiante/{id}', [TbestudianteController::class, 'destroy']);
