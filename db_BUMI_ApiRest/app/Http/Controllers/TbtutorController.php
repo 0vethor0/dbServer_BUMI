@@ -12,9 +12,9 @@ class TbtutorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()//obtener todos los tutores
+    public function index() //obtener todos los tutores
     {
-        $tutores = tbtutor::all();
+        $tutores = tbtutor::select('cedulaTutor', '1er_nombre', '2do_nombre', '1er_ape', '2do_ape', 'tipoTutor', 'idAreaInvestigacion')->get();
         return response()->json($tutores);
     }
 
@@ -36,7 +36,7 @@ class TbtutorController extends Controller
         if($validator->fails() ) {
 
             $data = [
-                'message' => 'Error en la Validacion de los datos',
+                'message' => 'Tutor ya Regi',
                 'errors' => $validator->errors(),
                 'status' => 400
             ];
@@ -87,55 +87,54 @@ class TbtutorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)//actualizar un tutor
+        public function update(Request $request, $id)
     {
-        $tutor = tbtutor::find($id);
+        try {
+            $tutor = tbtutor::find($id);
 
-        if (!$tutor) {
-            return response()->json(['message' => 'Tutor no encontrado', 'status'=> 404], 404);
-        }
+            if (!$tutor) {
+                return response()->json(['message' => 'Tutor no encontrado', 'status'=> 404], 404);
+            }
 
-        $validatedData = Validator::make($request->all(), [
-            'cedulaTutor' => 'required|string|max:20|min:9|unique:tbtutor',
-            '1er_nombre'   => 'required|string|max:100',
-            '2do_nombre'   => 'nullable|string|max:100',
-            '1er_ape'      => 'required|string|max:100',
-            '2do_ape'      => 'nullable|string|max:100',
-            'tipoTutor'    => 'required|string|max:100',
-            'idAreaInvestigacion'  => 'required|integer',
-        ]);
-        if($validatedData->fails() ) {
+            $validatedData = Validator::make($request->all(), [
+                'cedulaTutor' => 'required|string|max:20|min:9',
+                '1er_nombre'   => 'required|string|max:100',
+                '2do_nombre'   => 'nullable|string|max:100',
+                '1er_ape'      => 'required|string|max:100',
+                '2do_ape'      => 'nullable|string|max:100',
+                'tipoTutor'    => 'required|string|max:100',
+                'idAreaInvestigacion'  => 'required|integer',
+            ]);
+            if($validatedData->fails() ) {
+                $data = [
+                    'message' => 'Error en la Validacion de los datos',
+                    'errors' => $validatedData->errors(),
+                    'status' => 400
+                ];
+                return response()->json($data, 400);
+            }
+
+            $tutor->update([
+                'cedulaTutor' => $request->input('cedulaTutor'),
+                '1er_nombre'   => $request->input('1er_nombre'),
+                '2do_nombre'   => $request->input('2do_nombre'),
+                '1er_ape'      => $request->input('1er_ape'),
+                '2do_ape'      => $request->input('2do_ape'),
+                'tipoTutor'    => $request->input('tipoTutor'),
+                'idAreaInvestigacion'  => $request->input('idAreaInvestigacion'),
+            ]);
 
             $data = [
-                'message' => 'Error en la Validacion de los datos',
-                'errors' => $validatedData->errors(),
-                'status' => 400
+                'message' => 'Tutor actualizado correctamente',
+                'respuesta' => $tutor,
+                'status' => 200
             ];
-            return response()->json($data, 400);
+
+            return response()->json($data, 200);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Error al actualizar el tutor', 'error' => $th->getMessage(), 'status' => 500], 500);
         }
-
-        $tutor= $tutor::update([
-            'cedulaTutor' => $request->input('cedulaTutor'),
-            '1er_nombre'   => $request->input('1er_nombre'),
-            '2do_nombre'   => $request->input('2do_nombre'),
-            '1er_ape'      => $request->input('1er_ape'),
-            '2do_ape'      => $request->input('2do_ape'),
-            'tipoTutor'    => $request->input('tipoTutor'),
-            'idAreaInvestigacion'  => $request->input('idAreaInvestigacion'),
-        ]);
-
-        $tutor->save();
-
-        $data = [
-            'message' => 'Tutor actualizado correctamente',
-            'respuesta' => $tutor,
-            'status' => 200
-        ];
-
-
-        return response()->json($data, 200);
     }
-
     /**
      * Remove the specified resource from storage.
      */
@@ -154,5 +153,27 @@ class TbtutorController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al eliminar el tutor', 'error' => $e->getMessage(), ' status' => 500], 500);
         }
+    }
+
+    public function consultarDatosBasicos()
+    {
+        $tutores = tbtutor::select('cedulaTutor', '1er_nombre', '1er_ape')->get();
+        return response()->json($tutores);
+    }
+
+    public function buscarPorCedulaONombre(Request $request)
+    {
+        $busqueda = $request->input('busqueda');
+
+        $tutores = tbtutor::where('cedulaTutor', 'like', $busqueda . '%')
+            ->orWhere('1er_nombre', 'like', $busqueda . '%')
+            ->select('cedulaTutor', '1er_nombre', '2do_nombre', '1er_ape', '2do_ape', 'tipoTutor', 'idAreaInvestigacion')
+            ->get();
+
+        if ($tutores->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron tutores con esa búsqueda', 'status'=> 404], 404);
+        }
+
+        return response()->json($tutores);
     }
 }

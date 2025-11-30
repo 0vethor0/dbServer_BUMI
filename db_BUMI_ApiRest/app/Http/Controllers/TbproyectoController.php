@@ -93,10 +93,10 @@ class TbproyectoController extends Controller
         }
 
         $validatedData = Validator::make($request->all(), [
-            'Titulo'   => 'required|string|max:100',
-            'objetivo_general'   => 'required|string|max:100',
-            'objetivos_especificos'   => 'required|string|max:100',
-            'resumen'   => 'required|string|max:100',
+            'Titulo'   => 'required|string|max:200',
+            'objetivo_general'   => 'required|string|max:200',
+            'objetivos_especificos'   => 'required|string|max:850',
+            'resumen'   => 'required|string|max:850',
             'tipoInvestigacion'  => 'required|string|max:100',
         ]);
         
@@ -109,7 +109,7 @@ class TbproyectoController extends Controller
             ];
             return response()->json($data, 400);
         }
-        $proyecto= $proyecto::update([
+        $proyecto->update([
             'Titulo'   => $request->input('Titulo'),
             'objetivo_general'   => $request->input('objetivo_general'),
             'objetivos_especificos'   => $request->input('objetivos_especificos'),
@@ -117,7 +117,6 @@ class TbproyectoController extends Controller
             'tipoInvestigacion'  => $request->input('tipoInvestigacion'),
         ]);
 
-        $proyecto->save();
         $data = [
             'message' => 'proyecto actualizado correctamente',
             'respuesta' => $proyecto,
@@ -146,5 +145,20 @@ class TbproyectoController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al eliminar el proyecto', 'error' => $e->getMessage(), ' status' => 500], 500);
         }
+    }
+
+    public function buscarPorTitulo(Request $request)
+    {
+        $busqueda = $request->input('busqueda');
+
+        $proyectos = tbproyecto::where('Titulo', 'like', $busqueda . '%')
+            ->select('Titulo', 'objetivo_general', 'objetivos_especificos', 'resumen', 'tipoInvestigacion')
+            ->get();
+
+        if ($proyectos->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron proyectos con ese Titulo', 'status'=>200 ], 200);
+        }
+
+        return response()->json($proyectos);
     }
 }

@@ -15,7 +15,7 @@ class TbareainvestigacionController extends Controller
      */
     public function index()
     {
-        $AreasInvestigacion = tbareainvestigacion::all();
+        $AreasInvestigacion = tbareainvestigacion::select('idAreaInvestigacion', 'nomb_Area')->get();
         return response()->json($AreasInvestigacion);
     }
 

@@ -89,14 +89,16 @@ class TbestudianteController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $estudiante = tbestudiante::find($id);
+        try {
+            //code...
+                    $estudiante = tbestudiante::find($id);
 
         if (!$estudiante) {
             return response()->json(['message' => 'Estudiante no encontrado', 'status'=> 404], 404);
         }
 
         $validatedData = Validator::make($request->all(), [
-            'cedulaEstudiante' => 'required|string|max:20|min:9|unique:tbestudiante',
+            "cedulaEstudiante" => "required|string|max:20|min:9",
             '1er_nombre'   => 'required|string|max:100',
             '2do_nombre'   => 'nullable|string|max:100',
             '1er_ape'      => 'required|string|max:100',
@@ -114,8 +116,9 @@ class TbestudianteController extends Controller
             return response()->json($data, 400);
         }
 
-        $estudiante= $estudiante::update([
-            'cedulaEstudiante' => $request->input('cedulaEstudiante'),
+
+        $estudiante->update([
+            "cedulaEstudiante" => $request->input('cedulaEstudiante'),
             '1er_nombre'   => $request->input('1er_nombre'),
             '2do_nombre'   => $request->input('2do_nombre'),
             '1er_ape'      => $request->input('1er_ape'),
@@ -123,8 +126,6 @@ class TbestudianteController extends Controller
             'idcarrera'    => $request->input('idcarrera'),
             'cedulaTutor'  => $request->input('cedulaTutor'),
         ]);
-
-        $estudiante->save();
 
         $data = [
             'message' => 'Estudiante actualizado correctamente',
@@ -134,6 +135,10 @@ class TbestudianteController extends Controller
 
 
         return response()->json($data, 200);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Error al actualizar el estudiante', 'error' => $th->getMessage(), 'status' => 500], 500);
+            //throw $th;
+        }
     }
 
     /**
@@ -155,4 +160,22 @@ class TbestudianteController extends Controller
             return response()->json(['message' => 'Error al eliminar el estudiante', 'error' => $e->getMessage(), 'status' => 500], 500);
         }
     }
+
+    public function buscarPorCedulaONombre(Request $request)
+    {
+        $busqueda = $request->input('busqueda');
+
+        
+        $estudiantes = tbestudiante::where('cedulaEstudiante', 'like', $busqueda . '%')
+            ->orWhere('1er_nombre', 'like', $busqueda . '%')
+            ->select('cedulaEstudiante', '1er_nombre', '2do_nombre', '1er_ape', '2do_ape', 'idcarrera', 'cedulaTutor')
+            ->get();
+
+        if ($estudiantes->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron estudiantes con esa búsqueda', 'status'=> 201], 201);
+        }
+
+        return response()->json($estudiantes);
+    }
+
 }
